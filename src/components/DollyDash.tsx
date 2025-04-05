@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -431,7 +430,6 @@ const DollyDash: React.FC = () => {
               <Button 
                 onClick={shareResults}
                 className="bg-dolly-gold hover:bg-dolly-gold/80 text-black"
-                startIcon={<Share2 size={16} />}
               >
                 <Share2 className="mr-2 h-4 w-4" /> Share Results
               </Button>
