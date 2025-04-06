@@ -106,6 +106,11 @@
     filter: drop-shadow(0 0 8px theme('colors.dolly.gold'));
   }
   
+  .golden-glow {
+    animation: golden-pulse 1.5s infinite alternate;
+    filter: drop-shadow(0 0 10px #FFD700);
+  }
+  
   .price-up {
     @apply text-dolly-green font-bold transition-colors duration-300;
   }
@@ -117,5 +122,78 @@
   .hover-scale {
     @apply transition-transform duration-300 hover:scale-110 cursor-pointer;
   }
+}
+
+@keyframes golden-pulse {
+  0% {
+    filter: drop-shadow(0 0 5px #FFD700);
+  }
+  100% {
+    filter: drop-shadow(0 0 15px #FFD700);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translate(-50%, -50%);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05) translate(-50%, -50%);
+  }
+  70% {
+    transform: scale(0.9) translate(-50%, -50%);
+  }
+  100% {
+    transform: scale(1) translate(-50%, -50%);
+  }
+}
+
+.animate-float {
+  animation: float 2s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+.animate-pulse-scale {
+  animation: pulse-scale 1s ease-in-out infinite;
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.6s ease-out forwards;
+}
+
+.bg-space-gradient {
+  background: linear-gradient(to bottom, #121212, #1a1a2e);
 }
 

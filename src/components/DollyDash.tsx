@@ -8,9 +8,11 @@ import {
   Sparkles, 
   X, 
   Diamond,
-  DollarSign
+  DollarSign,
+  Download
 } from "lucide-react";
 import IntroScreens from "./IntroScreens";
+import html2canvas from 'html2canvas';
 
 // Define types for our game
 type GameState = 'intro' | 'onboarding' | 'playing' | 'rugged' | 'complete';
@@ -22,7 +24,7 @@ const DollyDash: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>('intro');
   const [dollyCoins, setDollyCoins] = useState(0);
   const [timeLeft, setTimeLeft] = useState(20);
-  const [currentPrice, setCurrentPrice] = useState(1);
+  const [currentPrice, setCurrentPrice] = useState(0.0001);
   const [highScore, setHighScore] = useState(0);
   const [multiplier, setMultiplier] = useState(1);
   const [priceDirection, setPriceDirection] = useState<'up' | 'down'>('up');
@@ -38,6 +40,7 @@ const DollyDash: React.FC = () => {
   
   // Refs
   const gameContainerRef = useRef<HTMLDivElement>(null);
+  const resultCardRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const powerUpTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const memeGuestTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -50,7 +53,7 @@ const DollyDash: React.FC = () => {
     setGameState('playing');
     setDollyCoins(0);
     setTimeLeft(20);
-    setCurrentPrice(1);
+    setCurrentPrice(0.0001);
     setMultiplier(1);
     setPriceDirection('up');
     setCombo(0);
@@ -78,8 +81,8 @@ const DollyDash: React.FC = () => {
       setCurrentPrice((prev) => {
         const change = Math.random() * 0.2;
         return newDirection === 'up' 
-          ? parseFloat((prev * (1 + change)).toFixed(2))
-          : parseFloat((prev * (1 - change * 0.7)).toFixed(2)); // Less downside
+          ? parseFloat((prev * (1 + change)).toFixed(8))
+          : parseFloat((prev * (1 - change * 0.7)).toFixed(8));
       });
       
       // Random power-ups and meme guests
@@ -104,13 +107,13 @@ const DollyDash: React.FC = () => {
   
   // Check for high score
   const checkHighScore = () => {
-    const finalScore = Math.round(dollyCoins * currentPrice * multiplier);
+    const finalScore = Math.round(dollyCoins * currentPrice * multiplier * 1000) / 1000;
     if (finalScore > highScore) {
       setHighScore(finalScore);
       localStorage.setItem('dollyDashHighScore', finalScore.toString());
       toast({
         title: "New High Score!",
-        description: `You're a true Dolly Degen with ${finalScore} points!`,
+        description: `You're a true Dolly Degen with ${finalScore} $DOLLY!`,
       });
     }
   };
@@ -119,7 +122,7 @@ const DollyDash: React.FC = () => {
   useEffect(() => {
     const savedHighScore = localStorage.getItem('dollyDashHighScore');
     if (savedHighScore) {
-      setHighScore(parseInt(savedHighScore));
+      setHighScore(parseFloat(savedHighScore));
     }
     
     return () => {
@@ -188,10 +191,10 @@ const DollyDash: React.FC = () => {
       
       // Add bonus if tapping during a dip
       if (priceDirection === 'down') {
-        coinsEarned *= 1.5; // Buy the dip bonus
+        coinsEarned *= 1.5;
         setCombo((prev) => prev + 1);
         if (combo > 0 && combo % 3 === 0) {
-          coinsEarned *= 1.2; // Combo bonus
+          coinsEarned *= 1.2;
           toast({
             title: "Combo x" + combo,
             description: "Diamond hands!",
@@ -205,7 +208,7 @@ const DollyDash: React.FC = () => {
       setDollyCoins((prev) => prev + coinsEarned);
       
       // Show popup with coins gained
-      setCoinPopupValue(Math.round(coinsEarned));
+      setCoinPopupValue(Math.round(coinsEarned * 100) / 100);
       setCoinPopupPosition({ x, y });
       setShowCoinPopup(true);
       setTimeout(() => setShowCoinPopup(false), 800);
@@ -306,30 +309,41 @@ const DollyDash: React.FC = () => {
     setMemeGuest(null);
   };
   
-  // Share results
+  // Create and download shareable image
   const shareResults = () => {
-    const score = Math.round(dollyCoins * currentPrice * multiplier);
-    const shareText = `I YOLO'd $${score.toLocaleString()} into $DOLLY and made it rain in 20s 🐑💸 – Can you beat me?`;
+    if (!resultCardRef.current) return;
     
-    if (navigator.share) {
-      navigator.share({
-        title: 'Dolly Dash: Tap to Moon',
-        text: shareText,
-        url: window.location.href,
-      });
-    } else {
-      // Fallback for browsers that don't support the Web Share API
-      navigator.clipboard.writeText(shareText);
+    toast({
+      title: "Creating your meme card...",
+      description: "Almost there!",
+    });
+    
+    html2canvas(resultCardRef.current).then(canvas => {
+      const image = canvas.toDataURL("image/png");
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = `dolly-dash-score-${calculateScore()}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
       toast({
-        title: "Copied to clipboard!",
+        title: "Meme card saved!",
         description: "Share your Dolly Dash score with friends!",
       });
-    }
+    }).catch(err => {
+      console.error("Error generating image:", err);
+      toast({
+        title: "Oops!",
+        description: "Couldn't create your meme card. Try again?",
+        variant: "destructive",
+      });
+    });
   };
   
   // Calculate final score
   const calculateScore = () => {
-    return Math.round(dollyCoins * currentPrice * multiplier);
+    return Math.round(dollyCoins * currentPrice * multiplier * 1000) / 1000;
   };
   
   // Get leaderboard title based on score
@@ -359,13 +373,13 @@ const DollyDash: React.FC = () => {
       <div className="w-full flex justify-between items-center mb-4">
         <div className="flex flex-col items-start">
           <h2 className="text-xl font-bold text-white">
-            <span className="text-dolly-gold">$DOLLY</span>: ${currentPrice.toFixed(2)}
+            <span className="text-dolly-gold">$DOLLY</span>: {currentPrice.toFixed(8)}
             <span className={priceDirection === 'up' ? 'price-up ml-1' : 'price-down ml-1'}>
               {priceDirection === 'up' ? '↗' : '↘'}
             </span>
           </h2>
           <div className="text-white">
-            Score: <span className="text-dolly-gold font-bold">{calculateScore().toLocaleString()}</span>
+            Score: <span className="text-dolly-gold font-bold">{calculateScore().toFixed(3)}</span>
           </div>
         </div>
         
@@ -375,7 +389,7 @@ const DollyDash: React.FC = () => {
         </div>
         
         <div className="text-right text-white">
-          <div>High Score: <span className="text-dolly-gold font-bold">{highScore.toLocaleString()}</span></div>
+          <div>High Score: <span className="text-dolly-gold font-bold">{highScore.toFixed(3)}</span></div>
           <div>
             {multiplier > 1 && (
               <span className="bg-dolly-gold text-black px-2 py-0.5 rounded-full text-xs font-bold animate-pulse-scale">
@@ -451,7 +465,26 @@ const DollyDash: React.FC = () => {
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-white z-10 animate-fade-in">
             <h1 className="text-4xl font-bold mb-2 text-dolly-red">RUGGED! 💀</h1>
             <p className="text-xl mb-6">You tapped too fast and scared away all the liquidity!</p>
-            <p className="mb-6">Final Score: <span className="text-dolly-gold font-bold">{calculateScore().toLocaleString()}</span></p>
+            <p className="mb-6">Final Score: <span className="text-dolly-gold font-bold">{calculateScore().toFixed(3)} $DOLLY</span></p>
+            
+            {/* Result Card for sharing */}
+            <div 
+              ref={resultCardRef}
+              className="bg-gradient-to-br from-dolly-purple to-dolly-pink p-1 rounded-xl mb-6 shadow-lg w-64"
+            >
+              <div className="bg-black p-4 rounded-lg flex flex-col items-center">
+                <img 
+                  src="/lovable-uploads/845d645e-313d-4611-86b6-e22eefb8d3d0.png" 
+                  alt="Dolly" 
+                  className="w-16 h-16 object-cover rounded-full mb-2"
+                />
+                <p className="text-center font-bold text-white">
+                  I YOLO'd {calculateScore().toFixed(3)} $DOLLY and got rugged in 20s 💀
+                </p>
+                <p className="text-center text-dolly-gold">Can you fare better?</p>
+              </div>
+            </div>
+            
             <div className="flex space-x-4">
               <Button 
                 onClick={startGame}
@@ -463,7 +496,7 @@ const DollyDash: React.FC = () => {
                 onClick={shareResults}
                 className="bg-dolly-gold hover:bg-dolly-gold/80 text-black"
               >
-                <Share2 className="mr-2 h-4 w-4" /> Share Results
+                <Download className="mr-2 h-4 w-4" /> Save Meme
               </Button>
             </div>
           </div>
@@ -474,15 +507,23 @@ const DollyDash: React.FC = () => {
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 text-white z-10 animate-fade-in">
             <h1 className="text-4xl font-bold mb-2 text-dolly-gold">Game Complete!</h1>
             <p className="text-xl mb-2">
-              Final Score: <span className="text-dolly-gold font-bold">{calculateScore().toLocaleString()}</span>
+              Final Score: <span className="text-dolly-gold font-bold">{calculateScore().toFixed(3)} $DOLLY</span>
             </p>
             <p className="mb-6">Title Earned: <span className="text-dolly-purple font-bold">{getLeaderboardTitle()}</span></p>
             
-            {/* Meme Card */}
-            <div className="bg-gradient-to-br from-dolly-purple to-dolly-pink p-1 rounded-xl mb-6 shadow-lg">
-              <div className="bg-black p-4 rounded-lg">
-                <p className="text-center font-bold">
-                  I YOLO'd ${calculateScore().toLocaleString()} into $DOLLY and made it rain in 20s 🐑💸
+            {/* Meme Card for sharing */}
+            <div 
+              ref={resultCardRef}
+              className="bg-gradient-to-br from-dolly-purple to-dolly-pink p-1 rounded-xl mb-6 shadow-lg w-64"
+            >
+              <div className="bg-black p-4 rounded-lg flex flex-col items-center">
+                <img 
+                  src="/lovable-uploads/845d645e-313d-4611-86b6-e22eefb8d3d0.png" 
+                  alt="Dolly" 
+                  className="w-16 h-16 object-cover rounded-full mb-2"
+                />
+                <p className="text-center font-bold text-white">
+                  I YOLO'd {calculateScore().toFixed(3)} $DOLLY and made it rain in 20s 🐑💸
                 </p>
                 <p className="text-center text-dolly-gold">Can you beat me?</p>
               </div>
@@ -499,7 +540,7 @@ const DollyDash: React.FC = () => {
                 onClick={shareResults}
                 className="bg-dolly-gold hover:bg-dolly-gold/80 text-black"
               >
-                <Share2 className="mr-2 h-4 w-4" /> Share Results
+                <Download className="mr-2 h-4 w-4" /> Save Meme
               </Button>
             </div>
           </div>
@@ -532,13 +573,17 @@ const DollyDash: React.FC = () => {
                 <div className="absolute inset-0 -m-4 rounded-full border-2 border-dolly-gold animate-spin-slow opacity-50"></div>
               )}
               
-              {/* Dolly emoji with conditional styling */}
-              <div className={`text-5xl ${
+              {/* Dolly image instead of emoji */}
+              <div className={`w-20 h-20 ${
                 memeGuest === 'golden' 
                   ? 'dolly-gold-shadow' 
                   : powerUp ? 'dolly-shadow' : ''
               }`}>
-                {memeGuest === 'golden' ? '✨🐑✨' : '🐑'}
+                <img 
+                  src="/lovable-uploads/845d645e-313d-4611-86b6-e22eefb8d3d0.png" 
+                  alt="Dolly" 
+                  className="w-full h-full object-cover rounded-full"
+                />
               </div>
             </div>
             
@@ -566,6 +611,26 @@ const DollyDash: React.FC = () => {
                 }}
               >
                 🐸
+              </div>
+            )}
+            
+            {/* Golden Dolly */}
+            {memeGuest === 'golden' && (
+              <div 
+                className="absolute animate-bounce-in"
+                style={{ 
+                  left: `${Math.random() * 80 + 10}%`, 
+                  top: `${Math.random() * 80 + 10}%`, 
+                  transform: 'translate(-50%, -50%)' 
+                }}
+              >
+                <div className="w-16 h-16 rounded-full golden-glow">
+                  <img 
+                    src="/lovable-uploads/12effa93-d57b-4fb1-9e9c-16f42a0a3bfd.png" 
+                    alt="Golden Dolly" 
+                    className="w-full h-full object-cover rounded-full border-2 border-dolly-gold"
+                  />
+                </div>
               </div>
             )}
             
@@ -597,7 +662,7 @@ const DollyDash: React.FC = () => {
                 }}
               >
                 <span className="text-dolly-gold text-xl">
-                  +{coinPopupValue} $DOLLY
+                  +{coinPopupValue.toFixed(2)} $DOLLY
                 </span>
               </div>
             )}
