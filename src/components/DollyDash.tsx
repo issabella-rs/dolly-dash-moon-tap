@@ -9,8 +9,10 @@ import {
   X, 
   Diamond,
   DollarSign,
-  Download
+  Download,
+  Info
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import IntroScreens from "./IntroScreens";
 import html2canvas from 'html2canvas';
 
@@ -456,6 +458,16 @@ const DollyDash: React.FC = () => {
               >
                 Start Game
               </Button>
+
+              <Link to="/cashout" className="mt-4">
+                <Button
+                  variant="outline" 
+                  className="w-full border-dolly-gold text-dolly-gold hover:bg-dolly-gold/10"
+                >
+                  <Info size={18} className="mr-2" /> 
+                  How to Cash Out (50+ $DOLLY)
+                </Button>
+              </Link>
             </div>
           </div>
         )}
