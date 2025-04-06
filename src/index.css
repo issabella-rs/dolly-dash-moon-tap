@@ -122,6 +122,10 @@
   .hover-scale {
     @apply transition-transform duration-300 hover:scale-110 cursor-pointer;
   }
+
+  .book-page-turn {
+    animation: page-turn 1.5s ease-in-out forwards;
+  }
 }
 
 @keyframes golden-pulse {
@@ -177,6 +181,15 @@
   }
 }
 
+@keyframes page-turn {
+  0% {
+    transform: rotateY(0deg);
+  }
+  100% {
+    transform: rotateY(180deg);
+  }
+}
+
 .animate-float {
   animation: float 2s ease-in-out infinite;
 }
@@ -197,3 +210,11 @@
   background: linear-gradient(to bottom, #121212, #1a1a2e);
 }
 
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
