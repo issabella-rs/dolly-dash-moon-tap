@@ -10,9 +10,10 @@ import {
   Diamond,
   DollarSign
 } from "lucide-react";
+import IntroScreens from "./IntroScreens";
 
 // Define types for our game
-type GameState = 'intro' | 'playing' | 'rugged' | 'complete';
+type GameState = 'intro' | 'onboarding' | 'playing' | 'rugged' | 'complete';
 type PowerUp = 'disco' | 'rocket' | 'snakeoil' | 'diamond' | 'unicorn' | null;
 type MemeGuest = 'doge' | 'pepe' | 'golden' | null;
 
@@ -94,6 +95,11 @@ const DollyDash: React.FC = () => {
       moveDollyRandomly();
       
     }, 1000);
+  };
+  
+  // Complete onboarding
+  const completeOnboarding = () => {
+    setGameState('intro');
   };
   
   // Check for high score
@@ -337,6 +343,16 @@ const DollyDash: React.FC = () => {
     return "Exit Liquidity 💀";
   };
   
+  // Show onboarding screens
+  const showOnboarding = () => {
+    setGameState('onboarding');
+  };
+  
+  // Render onboarding screens if in onboarding state
+  if (gameState === 'onboarding') {
+    return <IntroScreens onComplete={completeOnboarding} />;
+  }
+  
   return (
     <div className="flex flex-col items-center justify-center min-h-screen w-full p-4 bg-space-gradient overflow-hidden">
       {/* Game Header */}
@@ -402,15 +418,31 @@ const DollyDash: React.FC = () => {
               <span className="text-white">Dolly</span> Dash
             </h1>
             <p className="text-xl mb-6">Tap to Moon! 🐑💸</p>
-            <p className="text-center max-w-xs mb-6">
-              Tap Dolly as she runs across the screen! But don't tap too fast or you'll get rugged!
-            </p>
-            <Button 
-              onClick={startGame}
-              className="bg-dolly-purple hover:bg-dolly-purple/80 text-white font-bold text-lg py-6 px-8 rounded-full animate-pulse-scale"
-            >
-              Start Game
-            </Button>
+            
+            {/* Round Button with Dolly Image */}
+            <div className="mb-8 w-40 h-40 rounded-full overflow-hidden border-4 border-dolly-gold shadow-lg hover-scale">
+              <img 
+                src="/lovable-uploads/845d645e-313d-4611-86b6-e22eefb8d3d0.png" 
+                alt="Dolly" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+            
+            <div className="flex flex-col space-y-4 w-full max-w-xs">
+              <Button 
+                onClick={showOnboarding}
+                className="bg-dolly-purple hover:bg-dolly-purple/80 text-white font-bold text-lg py-6 px-8 rounded-full"
+              >
+                How to Play
+              </Button>
+              
+              <Button 
+                onClick={startGame}
+                className="bg-dolly-gold hover:bg-dolly-gold/80 text-black font-bold text-lg py-6 px-8 rounded-full animate-pulse-scale"
+              >
+                Start Game
+              </Button>
+            </div>
           </div>
         )}
         

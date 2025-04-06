@@ -113,4 +113,9 @@
   .price-down {
     @apply text-dolly-red font-bold transition-colors duration-300;
   }
+  
+  .hover-scale {
+    @apply transition-transform duration-300 hover:scale-110 cursor-pointer;
+  }
 }
+
